@@ -39,6 +39,56 @@ class qtype_ddwtos_question extends qtype_gapselect_question_base {
     public function summarise_choice($choice) {
         return $this->html_to_text($choice->text, FORMAT_HTML);
     }
+
+    /* 
+    Função para calcular os acertos do usuário independente da ordem das respostas.
+    Sobrescreve a função presente na classe QTYPE_GAPSELECT_QUESTION_BASE
+    */
+    public function get_num_parts_right(array $response)
+    {
+        if ($this->is_ordered($this->id))
+        {
+            $numright = 0;
+            foreach ($this->places as $place => $notused)
+            {
+                if (!array_key_exists($this->field($place), $response)) 
+                {
+                    continue;
+                }
+                if ($response[$this->field($place)] == $this->get_right_choice_for($place))
+                {
+                    $numright += 1;
+                }
+            }
+        }
+        else
+        {
+            $qra = array(); //array que guarda as respostas corretas da questão (não necessariamente deordenadas)
+            foreach ($this->places as $place => $notused) 
+            {
+                array_push($qra, $this->get_right_choice_for($place));
+            }
+    
+            $numright = 0;
+            foreach($response as $r => $value)
+            {
+                if(in_array($value, $qra))
+                {
+                    $numright += 1;
+                }
+            }
+            // print_r($this->is_ordered($this->id));
+        }
+        return array($numright, count($this->places));
+    }
+
+    public function is_ordered($id)
+    {
+        global $DB;
+        $result = $DB->get_record('question_ddwtos', array('id' => $id))->ordered;
+        // print_r($this->id);
+        return $result;
+    }
 }
 
 
