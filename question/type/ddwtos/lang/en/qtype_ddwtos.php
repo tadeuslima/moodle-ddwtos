@@ -35,5 +35,7 @@ $string['pluginnameadding'] = 'Adding a drag and drop into text';
 $string['pluginnameediting'] = 'Editing a drag and drop into text';
 $string['pluginnamesummary'] = 'Missing words in the question text are filled in using drag and drop.';
 
+//DEMANDA
 $string['ordered'] = 'Ordered';
 $string['ordered_help'] = 'Checking this checkbox this question will consider the answers order for marks. Otherwise, it won\'t';
+//FIM DEMANDA

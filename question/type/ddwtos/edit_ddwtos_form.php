@@ -54,4 +54,60 @@ class qtype_ddwtos_edit_form extends qtype_gapselect_edit_form_base {
                 array('size' => 1, 'class' => 'tweakcss'));
         return $grouparray;
     }
+
+    //DEMANDA
+    /**
+     * Defines form elements for answer choices.
+     *
+     * @param object $mform The Moodle form object being built
+     */
+    protected function definition_answer_choice(&$mform) {
+
+        $mform->addElement('header', 'choicehdr', get_string('choices', 'qtype_gapselect'));
+        $mform->setExpanded('choicehdr', 1);
+
+        $mform->addElement('checkbox', 'ordered', get_string('ordered', 'qtype_ddwtos'));
+        $mform->setDefault('ordered', 0);
+        $mform->addHelpButton('ordered', 'ordered', 'qtype_ddwtos');
+
+        $mform->addElement('checkbox', 'shuffleanswers', get_string('shuffle', 'qtype_gapselect'));
+        $mform->setDefault('shuffleanswers', 0);
+
+        $textboxgroup = array();
+        $textboxgroup[] = $mform->createElement('group', 'choices',
+                get_string('choicex', 'qtype_gapselect'), $this->choice_group($mform));
+
+        if (isset($this->question->options)) {
+            $countanswers = count($this->question->options->answers);
+        } else {
+            $countanswers = 0;
+        }
+
+        if ($this->question->formoptions->repeatelements) {
+            $defaultstartnumbers = QUESTION_NUMANS_START * 2;
+            $repeatsatstart = max($defaultstartnumbers, QUESTION_NUMANS_START,
+                    $countanswers + QUESTION_NUMANS_ADD);
+        } else {
+            $repeatsatstart = $countanswers;
+        }
+
+        $repeatedoptions = $this->repeated_options();
+        $mform->setType('answer', PARAM_RAW);
+        $this->repeat_elements($textboxgroup, $repeatsatstart, $repeatedoptions,
+                'noanswers', 'addanswers', QUESTION_NUMANS_ADD,
+                get_string('addmorechoiceblanks', 'qtype_gapselect'), true);
+    }
+
+    public function set_data($question) {
+        global $DB;
+        question_bank::get_qtype($question->qtype)->set_default_options($question);
+
+        $question->ordered = $DB->get_record('question_ddwtos', array('questionid' => $question->id))->ordered;
+
+        // Subclass adds data_preprocessing code here.
+        $question = $this->data_preprocessing($question);
+
+        parent::set_data($question);
+    }
+    //FIM DEMANDA
 }

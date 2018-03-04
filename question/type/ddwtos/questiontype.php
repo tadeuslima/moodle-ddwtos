@@ -42,6 +42,67 @@ class qtype_ddwtos extends qtype_gapselect_base {
         return 'draggroup';
     }
 
+    //DEMANDA
+    public function save_question_options($question) {
+        global $DB;
+        $context = $question->context;
+        $result = new stdClass();
+
+        $oldanswers = $DB->get_records('question_answers',
+                array('question' => $question->id), 'id ASC');
+
+        // Insert all the new answers.
+        foreach ($question->choices as $key => $choice) {
+
+            if (trim($choice['answer']) == '') {
+                continue;
+            }
+
+            $feedback = $this->choice_options_to_feedback($choice);
+
+            if ($answer = array_shift($oldanswers)) {
+                $answer->answer = $choice['answer'];
+                $answer->feedback = $feedback;
+                $DB->update_record('question_answers', $answer);
+
+            } else {
+                $answer = new stdClass();
+                $answer->question = $question->id;
+                $answer->answer = $choice['answer'];
+                $answer->answerformat = FORMAT_HTML;
+                $answer->fraction = 0;
+                $answer->feedback = $feedback;
+                $answer->feedbackformat = 0;
+                $DB->insert_record('question_answers', $answer);
+            }
+        }
+
+        // Delete old answer records.
+        foreach ($oldanswers as $oa) {
+            $DB->delete_records('question_answers', array('id' => $oa->id));
+        }
+
+        $options = $DB->get_record('question_' . $this->name(),
+                array('questionid' => $question->id));
+        if (!$options) {
+            $options = new stdClass();
+            $options->questionid = $question->id;
+            $options->correctfeedback = '';
+            $options->partiallycorrectfeedback = '';
+            $options->incorrectfeedback = '';
+            $options->ordered = $question->ordered;
+            $options->id = $DB->insert_record('question_' . $this->name(), $options);
+        }
+
+        $options->shuffleanswers = !empty($question->shuffleanswers);
+        $options->ordered = !empty($question->ordered);
+        $options = $this->save_combined_feedback_helper($options, $question, $context, true);
+        $DB->update_record('question_' . $this->name(), $options);
+
+        $this->save_hints($question, true);
+    }
+    //FIM DEMANDA
+
     protected function choice_options_to_feedback($choice) {
         $output = new stdClass();
         $output->draggroup = $choice['choicegroup'];
