@@ -102,6 +102,7 @@ class qtype_ddwtos_renderer extends qtype_elements_embedded_in_question_text_ren
 
     protected function embedded_element(question_attempt $qa, $place,
             question_display_options $options) {
+        global $DB;
         $question = $qa->get_question();
         $group = $question->places[$place];
         $boxcontents = '&#160;' . html_writer::tag('span',
@@ -120,15 +121,40 @@ class qtype_ddwtos_renderer extends qtype_elements_embedded_in_question_text_ren
         }
 
         $feedbackimage = '';
-        if ($options->correctness) {
-            $response = $qa->get_last_qt_data();
-            $fieldname = $question->field($place);
-            if (array_key_exists($fieldname, $response)) {
-                $fraction = (int) ($response[$fieldname] ==
-                        $question->get_right_choice_for($place));
-                $feedbackimage = $this->feedback_image($fraction);
+        if ($DB->get_record('question_ddwtos', array('id' => $id))->ordered == 0)
+        {
+            if ($options->correctness) {
+                    $response = $qa->get_last_qt_data();
+                    // print_r($response);
+                    $fieldname = $question->field($place);
+                    if (array_key_exists($fieldname, $response)) {
+                        print_r($question->get_right_choice_for($place));
+                        $fraction = 0;
+                        foreach ($response as $notused => $r)
+                        {
+                            if ($r == $question->get_right_choice_for($place))
+                            {
+                                $fraction = 1;
+                            }
+                        }
+                        $feedbackimage = $this->feedback_image($fraction);
+                    }
+                }
             }
-        }
+            else
+            {
+                if ($options->correctness) {
+                    $response = $qa->get_last_qt_data();
+                    // print_r($response);
+                    $fieldname = $question->field($place);
+                    if (array_key_exists($fieldname, $response)) {
+                        print_r($question->get_right_choice_for($place));
+                        $fraction = (int) ($response[$fieldname] ==
+                                $question->get_right_choice_for($place));
+                        $feedbackimage = $this->feedback_image($fraction);
+                    }
+                }
+            }
 
         return html_writer::tag('span', $boxcontents, $attributes) . ' ' . $feedbackimage;
     }
