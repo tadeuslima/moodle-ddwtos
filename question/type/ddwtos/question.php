@@ -86,7 +86,6 @@ class qtype_ddwtos_question extends qtype_gapselect_question_base {
     {
         global $DB;
         $result = $DB->get_record('question_ddwtos', array('id' => $id))->ordered;
-        // print_r($this->id);
         return $result;
     }
 }
