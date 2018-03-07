@@ -85,7 +85,7 @@ class qtype_ddwtos_question extends qtype_gapselect_question_base {
     public function is_ordered($id)
     {
         global $DB;
-        $result = $DB->get_record('question_ddwtos', array('id' => $id))->ordered;
+        $result = $DB->get_record('question_ddwtos', array('questionid' => $id))->ordered;
         return $result;
     }
 }
